@@ -4,10 +4,19 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/littlefish12345/bilinetdrive"
 )
+
+var path = ""
+
+func joinPath(first string, second string) string {
+	path := filepath.Join(first, second)
+	pathList := strings.Split(path, "\\")
+	return strings.Join(pathList, "/")
+}
 
 func main() {
 	var command, parameter, parameter1 string
@@ -20,55 +29,58 @@ func main() {
 			hash, err := bilinetdrive.InitializeRootNode()
 			if err != nil {
 				fmt.Println(err)
-			} else {
-				bilinetdrive.SetRootNode(hash)
+				continue
 			}
+			bilinetdrive.SetRootNode(hash)
+			path = "/"
 		} else if command == "setRootNode" {
 			bilinetdrive.SetRootNode(parameter)
 		} else if command == "getRootNodeHash" {
 			hash, err := bilinetdrive.GetRootNodeHash()
 			if err != nil {
 				fmt.Println(err)
-			} else {
-				fmt.Println(hash)
+				continue
 			}
+			fmt.Println(hash)
 		} else if command == "ls" {
-			fileList, err := bilinetdrive.ListFile()
+			fileList, err := bilinetdrive.ListFile(path)
 			if err != nil {
 				fmt.Println(err)
-			} else {
-				for i := 0; i < len(fileList); i++ {
-					fmt.Printf(fileList[i][0])
-					if fileList[i][1] == "0" {
-						fmt.Printf("/")
-					}
-					fmt.Printf("\n")
+				continue
+			}
+			for i := 0; i < len(fileList); i++ {
+				fmt.Printf(fileList[i][0])
+				if fileList[i][1] == "0" {
+					fmt.Printf("/")
 				}
+				fmt.Printf("\n")
 			}
 		} else if command == "pwd" {
-			path, err := bilinetdrive.GetPwd()
-			if err != nil {
-				fmt.Println(err)
-			} else {
-				fmt.Println(path)
-			}
+			fmt.Println(path)
 		} else if command == "cd" {
-			err := bilinetdrive.SwitchDir(parameter)
+			tempPath, err := bilinetdrive.PathSwitchDir(path, parameter)
 			if err != nil {
 				fmt.Println(err)
+				continue
 			}
+			_, err = bilinetdrive.ListFile(tempPath)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+			path = tempPath
 		} else if command == "mkdir" {
-			err := bilinetdrive.MakeFolder(parameter)
+			err := bilinetdrive.MakeFolder(joinPath(path, parameter))
 			if err != nil {
 				fmt.Println(err)
 			}
 		} else if command == "rm" {
-			err := bilinetdrive.RemoveNode(parameter)
+			err := bilinetdrive.RemoveNode(joinPath(path, parameter))
 			if err != nil {
 				fmt.Println(err)
 			}
 		} else if command == "rn" {
-			err := bilinetdrive.RenameNode(parameter, parameter1)
+			err := bilinetdrive.RenameNode(path, parameter, parameter1)
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -81,7 +93,7 @@ func main() {
 			}
 			fileStat, _ := f.Stat()
 			defer f.Close()
-			err = bilinetdrive.UploadFile(f, filepath.Base(parameter))
+			err = bilinetdrive.UploadFile(f, joinPath(path, filepath.Base(parameter)))
 			f.Close()
 			if err != nil {
 				fmt.Println(err)
@@ -97,17 +109,12 @@ func main() {
 				continue
 			}
 			defer f.Close()
-			//data, err := bilinetdrive.DownloadData(parameter)
-			num, err := bilinetdrive.DownloadFile(parameter, f)
+			num, err := bilinetdrive.DownloadFile(joinPath(path, parameter), f)
 			if err != nil {
 				fmt.Println(err)
+				f.Close()
 				continue
 			}
-			//_, err = f.Write(data.Bytes())
-			//if err != nil {
-			//	fmt.Println(err)
-			///	continue
-			//}
 			f.Close()
 			endTime := float64(time.Now().UnixNano()) / 1e9
 			fmt.Println(float64(num) / (endTime - startTime) / 1024 / 1024)
