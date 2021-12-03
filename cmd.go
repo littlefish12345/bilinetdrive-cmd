@@ -4,19 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/littlefish12345/bilinetdrive"
 )
 
 var path = ""
-
-func joinPath(first string, second string) string {
-	path := filepath.Join(first, second)
-	pathList := strings.Split(path, "\\")
-	return strings.Join(pathList, "/")
-}
 
 func main() {
 	var command, parameter, parameter1 string
@@ -71,12 +64,12 @@ func main() {
 			}
 			path = tempPath
 		} else if command == "mkdir" {
-			err := bilinetdrive.MakeFolder(joinPath(path, parameter))
+			err := bilinetdrive.MakeFolder(bilinetdrive.JoinPath(path, parameter))
 			if err != nil {
 				fmt.Println(err)
 			}
 		} else if command == "rm" {
-			err := bilinetdrive.RemoveNode(joinPath(path, parameter))
+			err := bilinetdrive.RemoveNode(bilinetdrive.JoinPath(path, parameter))
 			if err != nil {
 				fmt.Println(err)
 			}
@@ -94,7 +87,7 @@ func main() {
 			}
 			fileStat, _ := f.Stat()
 			defer f.Close()
-			err = bilinetdrive.UploadFile(f, joinPath(path, filepath.Base(parameter)))
+			err = bilinetdrive.UploadFile(f, bilinetdrive.JoinPath(path, filepath.Base(parameter)))
 			f.Close()
 			if err != nil {
 				fmt.Println(err)
@@ -110,7 +103,7 @@ func main() {
 				continue
 			}
 			defer f.Close()
-			num, err := bilinetdrive.DownloadFile(joinPath(path, parameter), f)
+			num, err := bilinetdrive.DownloadFile(bilinetdrive.JoinPath(path, parameter), f)
 			if err != nil {
 				fmt.Println(err)
 				f.Close()
