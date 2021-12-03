@@ -35,6 +35,7 @@ func main() {
 			path = "/"
 		} else if command == "setRootNode" {
 			bilinetdrive.SetRootNode(parameter)
+			path = "/"
 		} else if command == "getRootNodeHash" {
 			hash, err := bilinetdrive.GetRootNodeHash()
 			if err != nil {
@@ -85,7 +86,7 @@ func main() {
 				fmt.Println(err)
 			}
 		} else if command == "upload" {
-			startTime := float64(time.Now().UnixNano()) / 1e9
+			startTime := float64(time.Now().UnixMilli()) / 1000
 			f, err := os.Open(parameter)
 			if err != nil {
 				fmt.Println(err)
@@ -99,10 +100,10 @@ func main() {
 				fmt.Println(err)
 				continue
 			}
-			endTime := float64(time.Now().UnixNano()) / 1e9
+			endTime := float64(time.Now().UnixMilli()) / 1000
 			fmt.Println(float64(fileStat.Size()) / (endTime - startTime) / 1024 / 1024)
 		} else if command == "download" {
-			startTime := float64(time.Now().UnixNano()) / 1e9
+			startTime := float64(time.Now().UnixMilli()) / 1000
 			f, err := os.Create(parameter)
 			if err != nil {
 				fmt.Println(err)
@@ -116,7 +117,7 @@ func main() {
 				continue
 			}
 			f.Close()
-			endTime := float64(time.Now().UnixNano()) / 1e9
+			endTime := float64(time.Now().UnixMilli()) / 1000
 			fmt.Println(float64(num) / (endTime - startTime) / 1024 / 1024)
 		} else if command == "exit" {
 			hash, err := bilinetdrive.GetRootNodeHash()
